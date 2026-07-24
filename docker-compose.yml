@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  studio:
+    image: supabase/studio:2024.1.1
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - STUDIO_PG_META_URL=http://meta:8080
+      - POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
+      - SUPABASE_URL=https://your-project.runflare.run
+      - SUPABASE_PUBLIC_ANON_KEY=your-anon-key
+      - SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+  meta:
+    image: supabase/postgres-meta:v0.80.0
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - PG_META_PORT=8080
+      - PG_META_DB_HOST=melkradardbnext-oft-service
+      - PG_META_DB_NAME=postgres
+      - PG_META_DB_USER=postgres
+      - PG_META_DB_PASSWORD=your-super-secret-and-long-postgres-password
