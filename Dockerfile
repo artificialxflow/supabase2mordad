@@ -1,2 +1,2 @@
-FROM supabase/studio:2024.1.1
+FROM supabase/studio:latest
 EXPOSE 3000
