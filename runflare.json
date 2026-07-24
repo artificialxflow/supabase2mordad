@@ -1,0 +1,5 @@
+{
+  "project_name": "supabasesecond",
+  "app_name": "supabase-app",
+  "type": "docker-compose"
+}
