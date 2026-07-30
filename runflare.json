@@ -1,5 +1,6 @@
 {
-  "project_name": "supabasesecond",
-  "app_name": "supabase-app",
-  "type": "docker-compose"
+  "project_name": "pasteurplus",
+  "app_name": "supabase",
+  "type": "docker-compose",
+  "port": 3000
 }

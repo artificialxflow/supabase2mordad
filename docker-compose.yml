@@ -2,25 +2,30 @@ version: '3.8'
 
 services:
   studio:
-    image: supabase/studio:2024.1.1
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
     ports:
       - "3000:3000"
     environment:
-      - STUDIO_PG_META_URL=http://meta:8080
-      - POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
-      - SUPABASE_URL=https://your-project.runflare.run
-      - SUPABASE_PUBLIC_ANON_KEY=your-anon-key
-      - SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
+      STUDIO_PG_META_URL: http://meta:8080
+      SUPABASE_URL: ${SUPABASE_URL:-https://supabase-pasteurplus.runflare.run}
+      SUPABASE_PUBLIC_ANON_KEY: ${SUPABASE_PUBLIC_ANON_KEY:-placeholder-anon-key}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-placeholder-service-role-key}
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      - meta
 
   meta:
-    image: supabase/postgres-meta:v0.80.0
+    build:
+      context: .
+      dockerfile: Dockerfile.meta
     restart: always
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     environment:
-      - PG_META_PORT=8080
-      - PG_META_DB_HOST=melkradardbnext-oft-service
-      - PG_META_DB_NAME=postgres
-      - PG_META_DB_USER=postgres
-      - PG_META_DB_PASSWORD=your-super-secret-and-long-postgres-password
+      PG_META_PORT: 8080
+      DATABASE_URL: ${DATABASE_URL}

@@ -1,9 +1,8 @@
-FROM supabase/studio:2024.1.1
-
-ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
+FROM supabase/postgres-meta:v0.80.0
 
 COPY scripts/with-database-url.js /with-database-url.js
 
 ENTRYPOINT ["node", "/with-database-url.js"]
-EXPOSE 3000
+CMD ["node", "dist/server/server.js"]
+
+EXPOSE 8080
