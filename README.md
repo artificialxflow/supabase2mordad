@@ -31,6 +31,28 @@ HOSTNAME=0.0.0.0
 
 ---
 
+## لاگ تشخیصی (بعد از این Deploy)
+
+بعد از استقرار، در **مشاهده لاگ** این بلوک را پیدا کنید:
+
+```text
+========== DIAGNOSE START ==========
+[diagnose] PORT=3000
+[diagnose] DATABASE_URL=postgresql://postgres:***@...
+[diagnose] DB parsed host=...
+[diagnose] Postgres TCP OK ...     ← یا FAIL / TIMEOUT
+[probe #1] 127.0.0.1:3000 -> HTTP 200   ← یا FAIL
+```
+
+| لاگ | معنی |
+|-----|------|
+| `Postgres TCP FAIL/TIMEOUT` | `DATABASE_URL` host اشتباه است یا DB از این پاد دیده نمی‌شود |
+| `probe ... FAIL` | Studio روی ۳۰۰۰ داخل پاد listen نیست |
+| `probe ... HTTP 200` ولی دامنه refuse | مشکل اینگرس/پورت عمومی Runflare است |
+| `Studio exited code=...` | پروسه Studio کرش کرده |
+
+---
+
 ## لوکال (اختیاری)
 
 ```bash

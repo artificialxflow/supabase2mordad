@@ -1,6 +1,6 @@
 {
   "project_name": "pasteurplus",
   "app_name": "supabase",
-  "type": "docker-compose",
+  "type": "dockerfile",
   "port": 3000
 }
