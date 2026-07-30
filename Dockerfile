@@ -1,9 +1,2 @@
-FROM supabase/studio:2024.1.1
-
-ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
-
-COPY scripts/with-database-url.js /with-database-url.js
-
-ENTRYPOINT ["node", "/with-database-url.js"]
+FROM supabase/studio:latest
 EXPOSE 3000
