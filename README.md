@@ -1,30 +1,47 @@
-# Supabase Deployment on Runflare
+# راهنمای استقرار Supabase Studio روی Runflare
 
-This repository contains the necessary configuration to deploy Supabase Studio on the Runflare cloud platform.
+این پروژه Studio + postgres-meta را با پورت **3000** بالا می‌آورد و با یک `DATABASE_URL` به Postgres وصل می‌شود.
 
-## Project Structure
+---
 
-- `Dockerfile`: Defines the base image for Supabase Studio (`supabase/studio:latest`) and exposes port 3000.
-- `README.md`: Project documentation and deployment instructions.
+## متغیرهای محیطی (همین‌ها را در Runflare بگذارید)
 
-## Prerequisites
+محتوای درست الان در `.env.example` است. در پنل سرویس `supabase` → **تنظیم متغیر محیطی** → **Bulk Edit** دقیقاً این را بچسبانید:
 
-- [Runflare CLI](https://runflare.com/) installed on your local machine.
-- An active Runflare account with an authenticated CLI session (`runflare login`).
+```env
+DATABASE_URL=postgresql://postgres:ljW3Onfbo6PSYVS3nidi@melkradardbnext-oft-qeu-service:5432/melkradatjp_db
+SUPABASE_URL=https://supabase-pasteurplus.runflare.run
+PORT=3000
+HOSTNAME=0.0.0.0
+```
 
-## Deployment Instructions
+اگر در صفحه دیتابیس host متفاوت بود (مثلاً `...-cft-...`)، همان **uri (internal)** صفحه دیتابیس را جایگزین خط `DATABASE_URL` کنید.
 
-1. Open your terminal (PowerShell) in the project directory.
-2. If you are logging in for the first time or need to refresh your session, run:
-   ```powershell
-   runflare login
-   ```
-3. Run the deployment command specifying your project name and item name:
-   ```powershell
-   runflare deploy --project-name supabasesecond --item-name supabase-app
-   ```
+---
 
-## Ports and Configuration
+## دقیقاً چه کار کنید؟
 
-- **Exposed Port:** 3000 (Supabase Studio Dashboard)
-- **Base Image:** `supabase/studio:latest`
+1. در Runflare، سرویس **supabase** را باز کنید.
+2. مطمئن شوید **Expose Port = 3000**.
+3. بروید **تنظیم متغیر محیطی** → Bulk Edit → چهار متغیر بالا را ذخیره کنید.
+4. کد/پروژه را دوباره **Deploy** کنید (GIT / CLI / Drag & Drop — همان روش قبلی).
+5. ۱–۲ دقیقه صبر کنید تا ابرک `فعال` شود.
+6. باز کنید: https://supabase-pasteurplus.runflare.run
+7. اگر باز نشد: **مشاهده لاگ** را چک کنید و خطا را کپی کنید.
+
+---
+
+## لوکال (اختیاری)
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+سپس: http://localhost:3000
+
+---
+
+## نکته امنیتی
+
+فایل `.env` در گیت ignore است. اگر مخزن عمومی است، پسورد را در `.env.example` نگه ندارید و در Postgres عوضش کنید.
