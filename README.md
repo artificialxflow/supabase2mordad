@@ -1,69 +1,75 @@
-# راهنمای استقرار Supabase Studio روی Runflare
+# استک کامل Supabase برای Pasteur / Runflare
 
-این پروژه Studio + postgres-meta را با پورت **3000** بالا می‌آورد و با یک `DATABASE_URL` به Postgres وصل می‌شود.
+این پروژه دیگر فقط Studio نیست. سرویس‌ها:
 
----
-
-## متغیرهای محیطی (همین‌ها را در Runflare بگذارید)
-
-محتوای درست الان در `.env.example` است. در پنل سرویس `supabase` → **تنظیم متغیر محیطی** → **Bulk Edit** دقیقاً این را بچسبانید:
-
-```env
-DATABASE_URL=postgresql://postgres:ljW3Onfbo6PSYVS3nidi@melkradardbnext-oft-qeu-service:5432/melkradatjp_db
-SUPABASE_URL=https://supabase-pasteurplus.runflare.run
-PORT=3000
-HOSTNAME=0.0.0.0
-```
-
-اگر در صفحه دیتابیس host متفاوت بود (مثلاً `...-cft-...`)، همان **uri (internal)** صفحه دیتابیس را جایگزین خط `DATABASE_URL` کنید.
+| سرویس | نقش |
+|--------|-----|
+| `db` | Postgres با اسکیمای Supabase (`auth`, نقش‌ها، …) |
+| `kong` | دروازه API عمومی روی **پورت 8000** |
+| `auth` | GoTrue → `/auth/v1/...` |
+| `rest` | PostgREST → `/rest/v1/...` |
+| `meta` | متادیتا برای Studio |
+| `studio` | داشبورد UI (از پشت Kong روی `/`) |
 
 ---
 
-## دقیقاً چه کار کنید؟
+## مهم روی Runflare
 
-1. در Runflare، سرویس **supabase** را باز کنید.
-2. مطمئن شوید **Expose Port = 3000**.
-3. بروید **تنظیم متغیر محیطی** → Bulk Edit → چهار متغیر بالا را ذخیره کنید.
-4. کد/پروژه را دوباره **Deploy** کنید (GIT / CLI / Drag & Drop — همان روش قبلی).
-5. ۱–۲ دقیقه صبر کنید تا ابرک `فعال` شود.
-6. باز کنید: https://supabase-pasteurplus.runflare.run
-7. اگر باز نشد: **مشاهده لاگ** را چک کنید و خطا را کپی کنید.
+1. نوع استقرار: **docker-compose** (نه فقط Dockerfile)
+2. **Expose Port = 8000** (Kong) — دیگر 3000 نباشد
+3. دامنه `supabase.pasteur.plus` به همین سرویس وصل باشد
+4. همه متغیرهای `.env.example` را در **Bulk Edit** متغیر محیطی هم بگذارید
+5. دیسک پایدار برای volume دیتابیس در نظر بگیرید (داده‌ها داخل `db-data` است)
+6. RAM: برای این استک حداقل **۲GB+** توصیه می‌شود
 
 ---
 
-## لاگ تشخیصی (بعد از این Deploy)
-
-بعد از استقرار، در **مشاهده لاگ** این بلوک را پیدا کنید:
+## چک سلامت بعد از Deploy
 
 ```text
-========== DIAGNOSE START ==========
-[diagnose] PORT=3000
-[diagnose] DATABASE_URL=postgresql://postgres:***@...
-[diagnose] DB parsed host=...
-[diagnose] Postgres TCP OK ...     ← یا FAIL / TIMEOUT
-[probe #1] 127.0.0.1:3000 -> HTTP 200   ← یا FAIL
+https://supabase.pasteur.plus/auth/v1/health
 ```
+باید جواب سالم بدهد (نه 404 HTML استودیو).
 
-| لاگ | معنی |
-|-----|------|
-| `Postgres TCP FAIL/TIMEOUT` | `DATABASE_URL` host اشتباه است یا DB از این پاد دیده نمی‌شود |
-| `probe ... FAIL` | Studio روی ۳۰۰۰ داخل پاد listen نیست |
-| `probe ... HTTP 200` ولی دامنه refuse | مشکل اینگرس/پورت عمومی Runflare است |
-| `Studio exited code=...` | پروسه Studio کرش کرده |
+```text
+https://supabase.pasteur.plus/rest/v1/
+```
+با هدر `apikey` و `Authorization: Bearer <ANON_KEY>` باید پاسخ API بدهد.
+
+Studio از همان دامنه روی مسیر `/` باز می‌شود.
 
 ---
 
-## لوکال (اختیاری)
+## کلیدها برای فرانت Next (Pasteur)
+
+از `.env` / پنل Runflare:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://supabase.pasteur.plus
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<همان ANON_KEY>
+```
+
+---
+
+## Postgres جداگانه Runflare (`melkradardbnext-...`)
+
+این استک **Postgres داخلی Supabase** می‌آورد (برای Auth لازم است).  
+Postgres قبلی Runflare برای Auth کافی نیست مگر اسکیمای کامل Supabase روی آن init شود. می‌توانید آن را برای چیز دیگر نگه دارید؛ برای این استک لازم نیست.
+
+---
+
+## استقرار
 
 ```bash
+# لوکال
 cp .env.example .env
-docker compose up --build
+docker compose up -d
 ```
 
-سپس: http://localhost:3000
+روی Runflare: Deploy با docker-compose + پورت 8000 + envها.
 
 ---
 
-## نکته امنیتی
+## SQL فاز ۱ Pasteur
 
-فایل `.env` در گیت ignore است. اگر مخزن عمومی است، پسورد را در `.env.example` نگه ندارید و در Postgres عوضش کنید.
+بعد از سبز شدن `/auth/v1/health`، اسکریپت‌ها را به ترتیب در Studio SQL Editor یا با `psql` روی سرویس `db` اجرا کنید (01 → 02 → …).

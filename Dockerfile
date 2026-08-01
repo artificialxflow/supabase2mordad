@@ -1,11 +1,6 @@
-FROM supabase/studio:latest
+# این فایل دیگر برای دیپلوی اصلی استفاده نمی‌شود.
+# استقرار از docker-compose.yml است (پورت 8000 = Kong).
+# نگه داشته شده فقط برای سازگاری احتمالی ابزارها.
 
-ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
-
-COPY scripts/diagnose-start.js /diagnose-start.js
-
-# Keep the base image CMD as args to this entrypoint
-ENTRYPOINT ["node", "/diagnose-start.js"]
-
-EXPOSE 3000
+FROM kong:2.8.1
+EXPOSE 8000

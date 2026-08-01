@@ -1,8 +1,0 @@
-FROM supabase/postgres-meta:v0.80.0
-
-COPY scripts/with-database-url.js /with-database-url.js
-
-ENTRYPOINT ["node", "/with-database-url.js"]
-CMD ["node", "dist/server/server.js"]
-
-EXPOSE 8080
