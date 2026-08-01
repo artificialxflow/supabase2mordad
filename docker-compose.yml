@@ -1,4 +1,4 @@
-name: supabase
+version: "3.8"
 
 services:
   db:
@@ -8,8 +8,8 @@ services:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
       interval: 5s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 15
+      start_period: 60s
     environment:
       POSTGRES_HOST: /var/run/postgresql
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -86,7 +86,6 @@ services:
       PGRST_DB_USE_LEGACY_GUCS: "false"
       PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
       PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY:-3600}
-    command: ["postgrest"]
 
   meta:
     image: supabase/postgres-meta:v0.84.2
@@ -107,8 +106,8 @@ services:
     image: supabase/studio:2024.11.06-sha-fbd8867
     restart: unless-stopped
     depends_on:
-      meta:
-        condition: service_started
+      - meta
+      - kong
     environment:
       HOSTNAME: "0.0.0.0"
       STUDIO_PG_META_URL: http://meta:8080
@@ -120,8 +119,6 @@ services:
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
-      NEXT_PUBLIC_ENABLE_LOGS: "false"
-      NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
       SNIPPETS_MANAGEMENT_FOLDER: /tmp/snippets
 
   kong:

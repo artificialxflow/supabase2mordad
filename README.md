@@ -1,75 +1,64 @@
-# استک کامل Supabase برای Pasteur / Runflare
+# استک کامل Supabase — یک سرویس Docker برای Runflare
 
-این پروژه دیگر فقط Studio نیست. سرویس‌ها:
+## این پروژه چیست؟
 
-| سرویس | نقش |
-|--------|-----|
-| `db` | Postgres با اسکیمای Supabase (`auth`, نقش‌ها، …) |
-| `kong` | دروازه API عمومی روی **پورت 8000** |
-| `auth` | GoTrue → `/auth/v1/...` |
-| `rest` | PostgREST → `/rest/v1/...` |
-| `meta` | متادیتا برای Studio |
-| `studio` | داشبورد UI (از پشت Kong روی `/`) |
+یک **Dockerfile همه‌کاره** که داخل یک کانتینر این‌ها را بالا می‌آورد:
 
----
+| پروسه | پورت داخلی | نقش |
+|--------|------------|-----|
+| Postgres (Supabase) | 5432 | دیتابیس با اسکیمای `auth` |
+| GoTrue (Auth) | 9999 | لاگین / ثبت‌نام |
+| PostgREST | 3001 | REST API |
+| postgres-meta | 8080 | متادیتا |
+| Studio | 3000 | داشبورد |
+| **nginx (عمومی)** | **8000** | دروازه `/auth` `/rest` `/` |
 
-## مهم روی Runflare
-
-1. نوع استقرار: **docker-compose** (نه فقط Dockerfile)
-2. **Expose Port = 8000** (Kong) — دیگر 3000 نباشد
-3. دامنه `supabase.pasteur.plus` به همین سرویس وصل باشد
-4. همه متغیرهای `.env.example` را در **Bulk Edit** متغیر محیطی هم بگذارید
-5. دیسک پایدار برای volume دیتابیس در نظر بگیرید (داده‌ها داخل `db-data` است)
-6. RAM: برای این استک حداقل **۲GB+** توصیه می‌شود
+دامنه باید به پورت **8000** وصل شود.
 
 ---
 
-## چک سلامت بعد از Deploy
+## دقیقاً روی Runflare چه کار کنید
 
-```text
-https://supabase.pasteur.plus/auth/v1/health
-```
-باید جواب سالم بدهد (نه 404 HTML استودیو).
+### ۱) پورت
+**Expose Port = `8000`** (نه 3000)
 
-```text
-https://supabase.pasteur.plus/rest/v1/
-```
-با هدر `apikey` و `Authorization: Bearer <ANON_KEY>` باید پاسخ API بدهد.
+### ۲) متغیرهای محیطی (Bulk Edit)
+کل محتوای `.env.example` را paste کنید. حداقل:
 
-Studio از همان دامنه روی مسیر `/` باز می‌شود.
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET`
+- `ANON_KEY`
+- `SERVICE_ROLE_KEY`
+- `PG_META_CRYPTO_KEY`
+- `SUPABASE_PUBLIC_URL=https://supabase.pasteur.plus`
+- `API_EXTERNAL_URL=https://supabase.pasteur.plus`
+- `SITE_URL=https://pasteur.plus`
+- `ADDITIONAL_REDIRECT_URLS=https://pasteur.plus/**`
+- `ENABLE_EMAIL_AUTOCONFIRM=true`
+- `KONG_HTTP_PORT=8000`
 
----
+### ۳) Deploy
+کد را Deploy کنید و **۵–۱۰ دقیقه** برای init دیتابیس صبر کنید.
 
-## کلیدها برای فرانت Next (Pasteur)
+### ۴) تست
+1. `https://supabase.pasteur.plus/auth/v1/health` → باید OK باشد  
+2. `https://supabase.pasteur.plus/` → Studio  
+3. اگر 502 بود، لاگ را بفرستید (خطوط `[start]` و `[health]`)
 
-از `.env` / پنل Runflare:
-
+### ۵) فرانت Pasteur
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://supabase.pasteur.plus
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<همان ANON_KEY>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjQxNzY5MjAwLCJleHAiOjE5ODA5NjYwMDB9.6LDzhWwsXYabPo7AzXbHfIcFyW2w_ZA2yyV6A-tgyeE
 ```
 
 ---
 
-## Postgres جداگانه Runflare (`melkradardbnext-...`)
+## منابع
 
-این استک **Postgres داخلی Supabase** می‌آورد (برای Auth لازم است).  
-Postgres قبلی Runflare برای Auth کافی نیست مگر اسکیمای کامل Supabase روی آن init شود. می‌توانید آن را برای چیز دیگر نگه دارید؛ برای این استک لازم نیست.
-
----
-
-## استقرار
-
-```bash
-# لوکال
-cp .env.example .env
-docker compose up -d
-```
-
-روی Runflare: Deploy با docker-compose + پورت 8000 + envها.
+استک کامل سنگین است. اگر پاد مدام Restart شد، RAM را به **حداقل ۲GB** برسانید و در صورت امکان دیسک پایدار بدهید.
 
 ---
 
-## SQL فاز ۱ Pasteur
+## نکته
 
-بعد از سبز شدن `/auth/v1/health`، اسکریپت‌ها را به ترتیب در Studio SQL Editor یا با `psql` روی سرویس `db` اجرا کنید (01 → 02 → …).
+Postgres جداگانه قبلی (`melkradardbnext-...`) دیگر برای این استک استفاده نمی‌شود؛ دیتابیس داخل همین کانتینر با ایمیج رسمی Supabase است تا اسکیمای `auth` وجود داشته باشد.
