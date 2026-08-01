@@ -1,10 +1,11 @@
 # All-in-one Supabase for Runflare (single Docker service)
 # Public port: 8000 (nginx gateway -> auth/rest/studio)
 
+# Use widely-available tags so Runflare can pull from Docker Hub
 FROM supabase/gotrue:v2.151.0 AS gotrue
 FROM postgrest/postgrest:v12.2.3 AS postgrest
 FROM supabase/postgres-meta:v0.84.2 AS meta
-FROM supabase/studio:2024.11.06-sha-fbd8867 AS studio
+FROM supabase/studio:latest AS studio
 
 FROM supabase/postgres:15.8.1.060
 

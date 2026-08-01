@@ -103,7 +103,7 @@ services:
       CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
 
   studio:
-    image: supabase/studio:2024.11.06-sha-fbd8867
+    image: supabase/studio:latest
     restart: unless-stopped
     depends_on:
       - meta
